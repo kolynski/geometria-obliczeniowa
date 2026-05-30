@@ -1,21 +1,39 @@
 """CLI for segment intersection project.
 
-Usage examples:
+Usage:
   python main.py x1 y1 x2 y2 x3 y3 x4 y4
-If no args provided, prompts the user for eight numbers.
+
+Without arguments the program asks for points A, B, C and D one by one.
 """
 import sys
 from geometry import Point, Segment, intersect_segments
 
+POINTS = (
+    ('A', 'x1', 'y1'),
+    ('B', 'x2', 'y2'),
+    ('C', 'x3', 'y3'),
+    ('D', 'x4', 'y4'),
+)
+
+
+def parse_float(value):
+    return float(value.replace(',', '.'))
+
 
 def parse_floats(args):
-    try:
-        vals = [float(x) for x in args]
-        if len(vals) != 8:
-            raise ValueError('Expected 8 numeric values')
-        return vals
-    except ValueError as e:
-        raise
+    if len(args) != 8:
+        raise ValueError('oczekiwano 8 wartości liczbowych')
+    return [parse_float(x) for x in args]
+
+
+def read_points():
+    vals = []
+    print('Podaj współrzędne punktów końcowych odcinków.')
+    for point_name, x_name, y_name in POINTS:
+        x = input(f'{point_name}.x ({x_name}): ').strip()
+        y = input(f'{point_name}.y ({y_name}): ').strip()
+        vals.extend([parse_float(x), parse_float(y)])
+    return vals
 
 
 def format_result(res):
@@ -32,14 +50,12 @@ def format_result(res):
 
 def main(argv=None):
     argv = argv or sys.argv[1:]
-    if not argv:
-        s = input('Podaj 8 liczb (x1 y1 x2 y2 x3 y3 x4 y4):\n')
-        argv = s.strip().split()
     try:
-        vals = parse_floats(argv)
+        vals = parse_floats(argv) if argv else read_points()
     except Exception as e:
         print('Błąd: nieprawidłowe dane wejściowe:', e)
         return 1
+
     x1, y1, x2, y2, x3, y3, x4, y4 = vals
     s1 = Segment(Point(x1, y1), Point(x2, y2))
     s2 = Segment(Point(x3, y3), Point(x4, y4))
