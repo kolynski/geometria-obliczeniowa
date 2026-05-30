@@ -146,13 +146,6 @@ C = (x3, y3)
 D = (x4, y4)
 ```
 
-Interfejs ma też szybkie przykłady:
-
-- `Punkt` - odcinki przecinają się w jednym punkcie,
-- `Odcinek` - odcinki mają wspólny fragment,
-- `Brak` - odcinki się nie przecinają,
-- `Styk` - odcinki dotykają się końcami.
-
 Po kliknięciu `Oblicz` aplikacja pokazuje:
 
 - wynik tekstowy,
@@ -325,7 +318,6 @@ Zawiera wersję konsolową:
 Zawiera wersję webową:
 
 - formularz z osobnymi polami dla punktów `A`, `B`, `C`, `D`,
-- szybkie przykłady,
 - wynik tekstowy,
 - rysunek SVG z siatką, osiami i zaznaczonym przecięciem.
 
@@ -375,8 +367,7 @@ python app.py
 http://127.0.0.1:5000/
 ```
 
-7. Użyj przycisków `Punkt`, `Odcinek`, `Brak` i `Styk`, żeby szybko pokazać
-   najważniejsze przypadki.
+7. Wpisz współrzędne punktów `A`, `B`, `C`, `D` i kliknij `Oblicz`.
 
 ## Autorzy
 
