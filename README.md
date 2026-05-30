@@ -292,6 +292,9 @@ Dzięki temu program jest odporniejszy na drobne błędy dokładności obliczeń
 
 ## Opis plików
 
+Kazdy plik ma krotki opis na gorze oraz zwiezle komentarze w miejscach, gdzie
+logika nie jest oczywista.
+
 ### `geometry.py`
 
 Zawiera część obliczeniową:

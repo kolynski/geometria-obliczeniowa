@@ -1,9 +1,6 @@
-"""CLI for segment intersection project.
+"""CLI dla projektu przeciecia odcinkow.
 
-Usage:
-  python main.py x1 y1 x2 y2 x3 y3 x4 y4
-
-Without arguments the program asks for points A, B, C and D one by one.
+Obsluguje dwa tryby: argumenty (x1..y4) lub pytania o punkty A, B, C, D.
 """
 import sys
 from geometry import Point, Segment, intersect_segments
@@ -17,16 +14,19 @@ POINTS = (
 
 
 def parse_float(value):
+    # Akceptuj przecinek lub kropke jako separator dziesietny.
     return float(value.replace(',', '.'))
 
 
 def parse_floats(args):
+    # Wymagaj dokladnie osmiu wspolrzednych.
     if len(args) != 8:
         raise ValueError('oczekiwano 8 wartości liczbowych')
     return [parse_float(x) for x in args]
 
 
 def read_points():
+    # Czytanie punktow po kolei, wygodne na prezentacje.
     vals = []
     print('Podaj współrzędne punktów końcowych odcinków.')
     for point_name, x_name, y_name in POINTS:
@@ -37,6 +37,7 @@ def read_points():
 
 
 def format_result(res):
+    # Zamien wynik na przyjazny tekst.
     if not res['intersect']:
         return 'NIE'
     if res['type'] == 'point':
@@ -59,6 +60,7 @@ def main(argv=None):
     x1, y1, x2, y2, x3, y3, x4, y4 = vals
     s1 = Segment(Point(x1, y1), Point(x2, y2))
     s2 = Segment(Point(x3, y3), Point(x4, y4))
+    # Policz i wypisz przeciecie.
     res = intersect_segments(s1, s2)
     print(format_result(res))
     return 0
