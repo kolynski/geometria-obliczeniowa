@@ -3,7 +3,7 @@
 Provides functions to determine intersection between two line segments in 2D.
 """
 from dataclasses import dataclass
-from typing import Tuple, Optional, Dict, Union
+from typing import Tuple, Optional, Dict
 import math
 
 EPS = 1e-9
@@ -47,6 +47,12 @@ def _segment_overlap_1d(a1: float, a2: float, b1: float, b2: float) -> Optional[
     return None
 
 
+def _intersection_segment_or_point(p1: Point, p2: Point) -> Dict[str, object]:
+    if _approx_equal(p1.x, p2.x) and _approx_equal(p1.y, p2.y):
+        return {'intersect': True, 'type': 'point', 'point': (p1.x, p1.y)}
+    return {'intersect': True, 'type': 'segment', 'segment': ((p1.x, p1.y), (p2.x, p2.y))}
+
+
 def _intersection_point(s1: Segment, s2: Segment) -> Optional[Point]:
     """Compute intersection point of lines (not segments). Returns Point or None if parallel."""
     x1, y1 = s1.a.x, s1.a.y
@@ -61,7 +67,7 @@ def _intersection_point(s1: Segment, s2: Segment) -> Optional[Point]:
     return Point(px, py)
 
 
-def intersect_segments(s1: Segment, s2: Segment) -> Dict[str, Union[bool, str, Tuple[float, float]]]:
+def intersect_segments(s1: Segment, s2: Segment) -> Dict[str, object]:
     """Determine intersection between two segments.
 
     Returns a dictionary with keys:
@@ -99,7 +105,7 @@ def intersect_segments(s1: Segment, s2: Segment) -> Dict[str, Union[bool, str, T
                 return s.a.y + t * (s.b.y - s.a.y)
             p1 = Point(xlo, y_at(s1, xlo))
             p2 = Point(xhi, y_at(s1, xhi))
-            return {'intersect': True, 'type': 'segment', 'segment': ((p1.x, p1.y), (p2.x, p2.y))}
+            return _intersection_segment_or_point(p1, p2)
         else:
             interval = _segment_overlap_1d(a.y, b.y, c.y, d.y)
             if interval is None:
@@ -107,39 +113,12 @@ def intersect_segments(s1: Segment, s2: Segment) -> Dict[str, Union[bool, str, T
             ylo, yhi = interval
             p1 = Point(a.x, ylo)
             p2 = Point(a.x, yhi)
-            return {'intersect': True, 'type': 'segment', 'segment': ((p1.x, p1.y), (p2.x, p2.y))}
+            return _intersection_segment_or_point(p1, p2)
 
     # Special cases: colinear/endpoint touches
     # Check if any endpoint of one lies on the other
     if _on_segment(a, b, c):
-        # c lies on ab
-        # if d also on ab -> overlap segment
-        if _on_segment(a, b, d):
-            # overlap is intersection of projections
-            if not _approx_equal(a.x, b.x):
-                interval = _segment_overlap_1d(a.x, b.x, c.x, d.x)
-                if interval is None:
-                    return {'intersect': False, 'type': 'none'}
-                xlo, xhi = interval
-                # compute corresponding y by linear interpolation
-                def y_at(s: Segment, x):
-                    if abs(s.a.x - s.b.x) < EPS:
-                        return min(s.a.y, s.b.y)
-                    t = (x - s.a.x) / (s.b.x - s.a.x)
-                    return s.a.y + t * (s.b.y - s.a.y)
-                p1 = Point(xlo, y_at(s1, xlo))
-                p2 = Point(xhi, y_at(s1, xhi))
-                return {'intersect': True, 'type': 'segment', 'segment': ((p1.x, p1.y), (p2.x, p2.y))}
-            else:
-                # vertical line: project on y
-                interval = _segment_overlap_1d(a.y, b.y, c.y, d.y)
-                if interval is None:
-                    return {'intersect': False, 'type': 'none'}
-                ylo, yhi = interval
-                p1 = Point(a.x, ylo)
-                p2 = Point(a.x, yhi)
-                return {'intersect': True, 'type': 'segment', 'segment': ((p1.x, p1.y), (p2.x, p2.y))}
-
+        return {'intersect': True, 'type': 'point', 'point': (c.x, c.y)}
     if _on_segment(a, b, d):
         return {'intersect': True, 'type': 'point', 'point': (d.x, d.y)}
     if _on_segment(c, d, a):
