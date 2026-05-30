@@ -4,7 +4,6 @@ Provides functions to determine intersection between two line segments in 2D.
 """
 from dataclasses import dataclass
 from typing import Tuple, Optional, Dict
-import math
 
 EPS = 1e-9
 
