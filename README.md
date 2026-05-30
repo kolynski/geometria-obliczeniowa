@@ -34,14 +34,6 @@ Uruchom CLI (przykład):
 python projekt\main.py 0 0 2 2 0 2 2 0
 ```
 
-Uruchom testy:
-
-```powershell
-pytest -q
-# lub (bez pytest):
-python -c "from projekt.tests.test_geometry import test_crossing_point; test_crossing_point(); print('ok')"
-```
-
 Uwagi:
 - Domyślne pole formularza w UI (po restarcie serwera) to `0 0 0 0 0 0 0 0`. Po wpisaniu wartości pozostają one w polu dopóki nie klikniesz `Reset`.
 - Jeśli chcesz wygenerować bardziej rozbudowaną dokumentację lub plik `requirements.txt` z dokładnymi wersjami, daj znać.
