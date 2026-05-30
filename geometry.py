@@ -1,10 +1,12 @@
-"""Geometry helpers for segment intersection.
+"""Funkcje geometryczne do przeciecia odcinkow.
 
-Provides functions to determine intersection between two line segments in 2D.
+Implementuje odporne numerycznie przeciecie odcinkow 2D i zwraca brak
+przeciecia, pojedynczy punkt albo wspolny odcinek.
 """
 from dataclasses import dataclass
 from typing import Tuple, Optional, Dict
 
+# Tolerancja uzywana w porownaniach zmiennoprzecinkowych.
 EPS = 1e-9
 
 
@@ -34,6 +36,7 @@ def _on_segment(a: Point, b: Point, p: Point) -> bool:
 
 
 def _approx_equal(a: float, b: float) -> bool:
+    # Porownanie z tolerancja EPS dla skalarow i wspolrzednych.
     return abs(a - b) <= EPS
 
 
@@ -47,6 +50,7 @@ def _segment_overlap_1d(a1: float, a2: float, b1: float, b2: float) -> Optional[
 
 
 def _intersection_segment_or_point(p1: Point, p2: Point) -> Dict[str, object]:
+    # Sprowadz do punktu, gdy dlugosc pokrycia wynosi zero.
     if _approx_equal(p1.x, p2.x) and _approx_equal(p1.y, p2.y):
         return {'intersect': True, 'type': 'point', 'point': (p1.x, p1.y)}
     return {'intersect': True, 'type': 'segment', 'segment': ((p1.x, p1.y), (p2.x, p2.y))}
@@ -82,22 +86,23 @@ def intersect_segments(s1: Segment, s2: Segment) -> Dict[str, object]:
     o3 = _orient(c, d, a)
     o4 = _orient(c, d, b)
 
-    # General case: proper intersection
+    # Przypadek ogolny: poprawne przeciecie (odcinki sie przecinaja).
     if o1 * o2 < -EPS and o3 * o4 < -EPS:
         p = _intersection_point(s1, s2)
         if p is None:
             return {'intersect': True, 'type': 'point', 'point': (float('nan'), float('nan'))}
         return {'intersect': True, 'type': 'point', 'point': (p.x, p.y)}
 
-    # Colinear case: all orientation values are ~0
+    # Przypadek wspoliniowy: wszystkie orientacje ~0.
     if abs(o1) <= EPS and abs(o2) <= EPS and abs(o3) <= EPS and abs(o4) <= EPS:
-        # project to 1D to find overlap
+        # Rzut do 1D, aby znalezc wspolny przedzial na osi X lub Y.
         if not _approx_equal(a.x, b.x):
             interval = _segment_overlap_1d(a.x, b.x, c.x, d.x)
             if interval is None:
                 return {'intersect': False, 'type': 'none'}
             xlo, xhi = interval
             def y_at(s: Segment, x):
+                # Interpolacja liniowa na odcinku dla y(x).
                 if abs(s.a.x - s.b.x) < EPS:
                     return min(s.a.y, s.b.y)
                 t = (x - s.a.x) / (s.b.x - s.a.x)
@@ -114,8 +119,7 @@ def intersect_segments(s1: Segment, s2: Segment) -> Dict[str, object]:
             p2 = Point(a.x, yhi)
             return _intersection_segment_or_point(p1, p2)
 
-    # Special cases: colinear/endpoint touches
-    # Check if any endpoint of one lies on the other
+    # Przypadki szczegolne: dotkniecie koncami poza wspoliniowoscia.
     if _on_segment(a, b, c):
         return {'intersect': True, 'type': 'point', 'point': (c.x, c.y)}
     if _on_segment(a, b, d):

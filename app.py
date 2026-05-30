@@ -1,3 +1,7 @@
+"""Interfejs Flask do wizualizacji przeciecia odcinkow.
+
+Renderuje formularz HTML, waliduje dane, liczy przeciecie i rysuje SVG.
+"""
 from flask import Flask, request, render_template_string
 from geometry import Point, Segment, intersect_segments
 
@@ -5,6 +9,7 @@ app = Flask(__name__)
 
 FIELDS = ('x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'x4', 'y4')
 
+# Przykladowe scenariusze do szybkich testow w UI.
 EXAMPLES = {
     'point': {
         'label': 'Punkt',
@@ -26,6 +31,7 @@ EXAMPLES = {
 
 EMPTY_VALUES = {field: '' for field in FIELDS}
 
+# Pelny szablon HTML trzymany inline, bez osobnych plikow szablonow.
 INDEX_HTML = """
 <!doctype html>
 <html lang="pl">
@@ -714,11 +720,13 @@ INDEX_HTML = """
 
 
 def _values_for_case(case_name: str) -> dict:
+  # Gdy brak nazwy przypadku, wez domyslny przyklad.
     example = EXAMPLES.get(case_name, EXAMPLES['point'])
     return dict(example['values'])
 
 
 def _read_number(raw_value: str, field_name: str) -> float:
+  # Akceptuj przecinek lub kropke jako separator dziesietny.
     value = raw_value.strip().replace(',', '.')
     if not value:
         raise ValueError(f'pole {field_name} jest puste')
@@ -726,10 +734,12 @@ def _read_number(raw_value: str, field_name: str) -> float:
 
 
 def _parse_values(raw_values: dict) -> list:
+  # Zachowaj kolejnosc pol dla spójnego mapowania na punkty.
     return [_read_number(raw_values[field], field) for field in FIELDS]
 
 
 def _parse_form(form) -> tuple:
+  # Obsluga pol formularza lub skrotu 'vals' z wartosciami po spacji.
     raw_values = {field: form.get(field, '').strip() for field in FIELDS}
 
     if not any(raw_values.values()) and form.get('vals'):
@@ -742,6 +752,7 @@ def _parse_form(form) -> tuple:
 
 
 def _format_result(res) -> tuple:
+  # Mapuj wynik przeciecia na tekst i etykiete statusu w UI.
     if not res['intersect']:
         return 'NIE', 'no', 'Brak przecięcia'
     if res['type'] == 'point':
@@ -754,6 +765,7 @@ def _format_result(res) -> tuple:
 
 
 def _solve(values: dict) -> tuple:
+  # Zbuduj odcinki, policz przeciecie i wyrenderuj SVG.
     x1, y1, x2, y2, x3, y3, x4, y4 = _parse_values(values)
     s1 = Segment(Point(x1, y1), Point(x2, y2))
     s2 = Segment(Point(x3, y3), Point(x4, y4))
@@ -763,6 +775,7 @@ def _solve(values: dict) -> tuple:
 
 
 def _render(values=None, result_text=None, result_type=None, result_label=None, svg=None):
+  # Renderuj szablon HTML z aktualnymi danymi i wynikiem.
     return render_template_string(
         INDEX_HTML,
         values=values or EMPTY_VALUES,
@@ -774,6 +787,7 @@ def _render(values=None, result_text=None, result_type=None, result_label=None, 
 
 
 def _make_svg(s1: Segment, s2: Segment, res) -> str:
+  # Wyznacz ramke z marginesem, obejmujaca oba odcinki.
     xs = [s1.a.x, s1.b.x, s2.a.x, s2.b.x]
     ys = [s1.a.y, s1.b.y, s2.a.y, s2.b.y]
     minx, maxx = min(xs), max(xs)
@@ -790,6 +804,7 @@ def _make_svg(s1: Segment, s2: Segment, res) -> str:
     width = 760
     height = 560
 
+    # Rzutuj wspolrzedne swiata do ukladu SVG.
     def tx(x):
         return (x - minx) / (maxx - minx) * width
 
@@ -798,6 +813,7 @@ def _make_svg(s1: Segment, s2: Segment, res) -> str:
 
     import math
 
+    # Dobierz czytelny krok siatki dla widocznego zakresu.
     def nice_step(span, target=8):
         raw = span / target if span > 0 else 1.0
         exp = math.floor(math.log10(raw))
@@ -811,6 +827,7 @@ def _make_svg(s1: Segment, s2: Segment, res) -> str:
     xstep = nice_step(maxx - minx)
     ystep = nice_step(maxy - miny)
 
+    # Start SVG: tlo, potem siatka.
     svg = [
         f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rysunek odcinków AB i CD">',
         '<rect width="100%" height="100%" fill="#fbfdff"/>',
@@ -830,6 +847,7 @@ def _make_svg(s1: Segment, s2: Segment, res) -> str:
         svg.append(f'<text x="10" y="{sy - 7:.2f}" font-size="12" font-weight="700" fill="#708098">{y:g}</text>')
         y += ystep
 
+    # Narysuj osie, jesli sa widoczne w kadrze.
     if minx <= 0 <= maxx:
         svg.append(f'<line x1="{tx(0):.2f}" y1="0" x2="{tx(0):.2f}" y2="{height}" stroke="#9fb0c1" stroke-width="2"/>')
     if miny <= 0 <= maxy:
@@ -838,6 +856,7 @@ def _make_svg(s1: Segment, s2: Segment, res) -> str:
     svg.append(f'<line x1="{tx(s1.a.x):.2f}" y1="{ty(s1.a.y):.2f}" x2="{tx(s1.b.x):.2f}" y2="{ty(s1.b.y):.2f}" stroke="#2f6fed" stroke-width="6" stroke-linecap="round"/>')
     svg.append(f'<line x1="{tx(s2.a.x):.2f}" y1="{ty(s2.a.y):.2f}" x2="{tx(s2.b.x):.2f}" y2="{ty(s2.b.y):.2f}" stroke="#159a74" stroke-width="6" stroke-linecap="round"/>')
 
+    # Podkresl czesc wspolna, jesli istnieje.
     if res['intersect']:
         if res['type'] == 'point':
             x, y = res['point']
@@ -846,6 +865,7 @@ def _make_svg(s1: Segment, s2: Segment, res) -> str:
             (x1, y1), (x2, y2) = res['segment']
             svg.append(f'<line x1="{tx(x1):.2f}" y1="{ty(y1):.2f}" x2="{tx(x2):.2f}" y2="{ty(y2):.2f}" stroke="#d92d20" stroke-width="10" stroke-linecap="round"/>')
 
+    # Zaznacz i podpisz konce obu odcinkow.
     points = (
         ('A', s1.a, '#2f6fed'),
         ('B', s1.b, '#2f6fed'),
