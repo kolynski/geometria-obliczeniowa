@@ -8,22 +8,18 @@ FIELDS = ('x1', 'y1', 'x2', 'y2', 'x3', 'y3', 'x4', 'y4')
 EXAMPLES = {
     'point': {
         'label': 'Punkt',
-        'detail': 'przecięcie w środku',
         'values': {'x1': '0', 'y1': '0', 'x2': '2', 'y2': '2', 'x3': '0', 'y3': '2', 'x4': '2', 'y4': '0'},
     },
     'segment': {
         'label': 'Wspólny odcinek',
-        'detail': 'odcinki współliniowe',
         'values': {'x1': '0', 'y1': '0', 'x2': '4', 'y2': '0', 'x3': '2', 'y3': '0', 'x4': '6', 'y4': '0'},
     },
     'none': {
         'label': 'Brak przecięcia',
-        'detail': 'rozłączne odcinki',
         'values': {'x1': '0', 'y1': '0', 'x2': '1', 'y2': '0', 'x3': '2', 'y3': '0', 'x4': '3', 'y4': '0'},
     },
     'touch': {
         'label': 'Styk końcami',
-        'detail': 'jeden punkt wspólny',
         'values': {'x1': '0', 'y1': '0', 'x2': '1', 'y2': '0', 'x3': '1', 'y3': '0', 'x4': '2', 'y4': '0'},
     },
 }
@@ -383,49 +379,8 @@ INDEX_HTML = """
       color: #ffffff;
     }
 
-    .btn:hover,
-    .scenario:hover {
+    .btn:hover {
       transform: translateY(-1px);
-    }
-
-    .scenarios {
-      padding: 0 16px 16px;
-    }
-
-    .scenario-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .scenario {
-      min-height: 64px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #ffffff;
-      padding: 10px 11px;
-      text-decoration: none;
-      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-    }
-
-    .scenario.active {
-      border-color: #8aa9ec;
-      background: var(--blue-soft);
-    }
-
-    .scenario strong {
-      display: block;
-      color: var(--text);
-      font-size: 13px;
-      line-height: 1.2;
-    }
-
-    .scenario span {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
     }
 
     .result-panel {
@@ -630,7 +585,6 @@ INDEX_HTML = """
         display: none;
       }
 
-      .scenario-grid,
       .actions,
       .result-head {
         grid-template-columns: 1fr;
@@ -640,8 +594,7 @@ INDEX_HTML = """
         display: none;
       }
 
-      .actions,
-      .scenario-grid {
+      .actions {
         max-width: 300px;
       }
 
@@ -722,16 +675,6 @@ INDEX_HTML = """
           </div>
         </form>
 
-        <div class="scenarios">
-          <div class="scenario-grid">
-            {% for key, example in examples.items() %}
-              <a class="scenario {% if active_case == key %}active{% endif %}" href="/?case={{ key }}">
-                <strong>{{ example.label }}</strong>
-                <span>{{ example.detail }}</span>
-              </a>
-            {% endfor %}
-          </div>
-        </div>
       </section>
 
       <section class="panel result-panel">
@@ -819,7 +762,7 @@ def _solve(values: dict) -> tuple:
     return result_text, result_type, result_label, _make_svg(s1, s2, result)
 
 
-def _render(values=None, result_text=None, result_type=None, result_label=None, svg=None, active_case=None):
+def _render(values=None, result_text=None, result_type=None, result_label=None, svg=None):
     return render_template_string(
         INDEX_HTML,
         values=values or EMPTY_VALUES,
@@ -827,8 +770,6 @@ def _render(values=None, result_text=None, result_type=None, result_label=None, 
         result_type=result_type,
         result_label=result_label,
         svg=svg,
-        examples=EXAMPLES,
-        active_case=active_case,
     )
 
 
@@ -935,7 +876,6 @@ def index():
         result_type=result_type,
         result_label=result_label,
         svg=svg,
-        active_case=case_name,
     )
 
 
